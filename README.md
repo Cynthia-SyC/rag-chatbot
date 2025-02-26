@@ -1,4 +1,3 @@
----
 # 📌 RAG-Powered Document Chatbot
 
 Welcome to the **RAG-Powered Document Chatbot** repository! This guide will help you set up the development environment using **Docker** in **VS Code**, configure the **OpenAI API key**, manage Git branches, and run the chatbot to interact with uploaded documents.
