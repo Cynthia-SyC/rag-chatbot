@@ -1,11 +1,46 @@
-# 📌 RAG-Powered Document Chatbot
+# 📌 RAG Chatbot
 
-Welcome to the **RAG-Powered Document Chatbot** repository! This guide will help you set up the development environment using **Docker** in **VS Code**, configure the **OpenAI API key**, manage Git branches, and run the chatbot to interact with uploaded documents.
+Welcome to the **RAG Chatbot** repository! This guide will help you set up the development environment using **Docker** in **VS Code**, configure the **OpenAI API key**, manage Git branches, and run the chatbot to interact with uploaded documents.
 
 Note: The structure of this README follows the format used in [INFO-5940](https://github.com/AyhamB/INFO-5940).
 
 ---
-## 🛠️ Prerequisites
+## 👀 Overview
+
+#### Overview
+
+This application allows users to upload TXT and PDF documents and ask questions based on the content using the AI model. It processes uploaded files by extracting text, chunking the content for efficient retrieval, and leveraging vector search with Chroma to find relevant information. The system provides context-aware responses by retrieving the most relevant document sections before passing them to the language model for generating accurate answers.
+
+#### Key Features
+1. Multi-Format Document Upload: Supports both TXT and PDF files for content processing.
+2. Interactive Q&A System: Users can ask questions in a chat-like interface, and the system generates context-aware responses based on the uploaded documents.
+
+---
+## 🛠️ Configuration Changes & Setup
+
+### Dependencies & Poetry Configuration
+
+#### 1. Added Dependencies
+- pdfplumber: Enables text extraction from PDFs.
+- langchain_chroma: Provides vector-based retrieval via ChromaDB.
+- Updated poetry.lock to align with pyproject.toml.
+
+#### 2. Installation & Fixes
+If dependencies are missing or outdated, update them with:
+
+```bash
+poetry add pdfplumber langchain_chroma
+poetry lock --no-update
+poetry install
+```
+
+#### 3. Modified Files:
+
+- docker-compose.yml
+- .devcontainer/devcontainer.json
+
+---
+## 🔑 Prerequisites
 
 Before starting, ensure you have the following installed on your system:
 - [Docker](https://www.docker.com/get-started) (Ensure Docker Desktop is running)
@@ -46,15 +81,7 @@ Remote-Containers: Reopen in Container
 
 #### ➤ Set the API Key in `.env` (Recommended)
 
-1. Inside the project folder, create a `.env` file:
-
-```bash
-
-touch .env
-
-```
-
-2. Add your API key and base URL:
+1. Inside the project folder, there is a `.env` file, Add your API key in it, the final file should look like this:
 
 ```plaintext
 
@@ -66,45 +93,8 @@ TZ=America/New_York
 
 ```
 
-3. Modify `docker-compose.yml` to include this `.env` file:
 
-```yaml
-
-version: '3.8'
-
-services:
-
-devcontainer:
-
-container_name: info-5940-devcontainer
-
-build:
-
-dockerfile: Dockerfile
-
-target: devcontainer
-
-environment:
-
-- OPENAI_API_KEY=${OPENAI_API_KEY}
-
-- OPENAI_BASE_URL=${OPENAI_BASE_URL}
-
-- TZ=${TZ}
-
-volumes:
-
-- '$HOME/.aws:/root/.aws'
-
-- '.:/workspace'
-
-env_file:
-
-- .env
-
-```
-
-4. Restart the container:
+2. Restart the container:
 
 ```bash
 
