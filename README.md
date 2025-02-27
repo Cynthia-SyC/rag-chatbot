@@ -79,30 +79,50 @@ Remote-Containers: Reopen in Container
 
 ### 3️⃣ Configure OpenAI API Key
 
-#### ➤ Set the API Key in `.env` (Recommended)
+#### ➤ Set the API Key in `.env`
 
-1. Inside the project folder, there is a `.env` file, Add your API key in it, the final file should look like this:
+1. Inside the project folder, create a `.env` file:  
 
-```plaintext
+   ```bash
+   touch .env
+   ```
 
-OPENAI_API_KEY=your-api-key-here
+2. Add your API key and base URL:  
 
-OPENAI_BASE_URL=https://api.ai.it.cornell.edu/
+   ```plaintext
+   OPENAI_API_KEY=your-api-key-here
+   OPENAI_BASE_URL=https://api.ai.it.cornell.edu/
+   TZ=America/New_York
+   ```
 
-TZ=America/New_York
+3. Modify `docker-compose.yml` to include this `.env` file:  
 
-```
+   ```yaml
+   version: '3.8'
+   services:
+     devcontainer:
+       container_name: info-5940-devcontainer
+       build:
+         dockerfile: Dockerfile
+         target: devcontainer
+       environment:
+         - OPENAI_API_KEY=${OPENAI_API_KEY}
+         - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+         - TZ=${TZ}
+       volumes:
+         - '$HOME/.aws:/root/.aws'
+         - '.:/workspace'
+       env_file:
+         - .env
+   ```
 
+4. Restart the container:  
 
-2. Restart the container:
+   ```bash
+   docker-compose up --build
+   ```
 
-```bash
-
-docker-compose up --build
-
-```
-
-Now, your API key will be automatically loaded inside the container.
+Now, your API key will be automatically loaded inside the container.  
 
 ---
   
