@@ -53,20 +53,31 @@ embeddings = AzureOpenAIEmbeddings(
     model="openai.text-embedding-3-large"
 )
 
-st.title("📝 File Q&A with OpenAI")
-uploaded_files = st.file_uploader(
-    "Upload one or more articles here:",
-    type=["txt", "pdf"],
-    accept_multiple_files=True
-)
+st.set_page_config(page_title="RAG Chatbot", layout="wide", initial_sidebar_state="expanded")
+
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [{"role": "assistant", "content": "Ask something about the uploaded article"}]
+
+    
+# sidebar
+
+with st.sidebar:
+    st.header("Your Documents")
+    uploaded_files = st.file_uploader(
+        "Upload one or more files so we can  chat",
+        type=["txt", "pdf"],
+        accept_multiple_files=True
+    )
+
+
+# chat
+
+st.title("🤖 RAG Chatbot")
 
 question = st.chat_input(
     "Ask something about the article",
     disabled=not uploaded_files,
 )
-
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "Ask something about the uploaded article"}]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -74,40 +85,45 @@ for msg in st.session_state.messages:
 if uploaded_files:
     all_docs = []
     for uploaded_file in uploaded_files:
-        source_name = uploaded_file.name
         file_bytes = uploaded_file.read()
-        if source_name.endswith(".txt"):
-            all_docs.extend(load_txt_file(file_bytes, source_name))
-        elif source_name.endswith(".pdf"):
-            all_docs.extend(load_pdf_file(file_bytes, source_name))
-    
-    doc_chunks = chunk_documents(all_docs)
-    vectorstore = Chroma.from_documents(documents=doc_chunks, embedding=embeddings)
+        file_name = uploaded_file.name
+        if file_name.endswith(".txt"):
+            all_docs.extend(load_txt_file(file_bytes, file_name))
+        elif file_name.endswith(".pdf"):
+            all_docs.extend(load_pdf_file(file_bytes, file_name))
 
-    if question:
-        # Read the content of the uploaded file
-        # file_content = uploaded_file.read().decode("utf-8")
-        # print(file_content)
+    if all_docs:
+        doc_chunks = chunk_documents(all_docs)
+        vectorstore = Chroma.from_documents(documents=doc_chunks, embedding=embeddings)
+    else:
+        vectorstore = None
+else:
+    vectorstore = None
 
-        # Append the user's question to the messages
-        st.session_state.messages.append({"role": "user", "content": question})
-        st.chat_message("user").write(question)
+if question and vectorstore:
+    # Read the content of the uploaded file
+    # file_content = uploaded_file.read().decode("utf-8")
+    # print(file_content)
 
-        relevant_docs = vectorstore.similarity_search(question, k=3)
-        context = "\n\n".join([doc.page_content for doc in relevant_docs])
+    # Append the user's question to the messages
+    st.session_state.messages.append({"role": "user", "content": question})
+    st.chat_message("user").write(question)
 
-        with st.chat_message("assistant"):
-            stream = client.chat.completions.create(
-                model="openai.gpt-4o",  # Change this to a valid model name
-                messages=[
-                    {"role": "system", "content": f"Here's the extracted context from the uploaded documents:\n\n{context}"},
-                    *st.session_state.messages
-                ],
-                stream=True
-            )
-            response = st.write_stream(stream)
+    relevant_docs = vectorstore.similarity_search(question, k=3)
+    context = "\n\n".join([doc.page_content for doc in relevant_docs])
 
-        # Append the assistant's response to the messages
-        st.session_state.messages.append({"role": "assistant", "content": response})
+    with st.chat_message("assistant"):
+        stream = client.chat.completions.create(
+            model="openai.gpt-4o",  # Change this to a valid model name
+            messages=[
+                {"role": "system", "content": f"Here's the extracted context from the uploaded documents:\n\n{context}"},
+                *st.session_state.messages
+            ],
+            stream=True
+        )
+        response = st.write_stream(stream)
+
+    # Append the assistant's response to the messages
+    st.session_state.messages.append({"role": "assistant", "content": response})
 
 

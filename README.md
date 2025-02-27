@@ -122,7 +122,7 @@ Once inside the **VS Code Dev Container**, launch the Streamlit application:
 
 ```bash
 
-streamlit run chat_with_pdf.py
+streamlit run chatbot.py
 
 ```
 
